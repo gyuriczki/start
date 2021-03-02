@@ -26,18 +26,9 @@ namespace TurkMite
             {
             }
 
-            protected override Vec3b GetNextColorAndUpdateDirection(Vec3b currentColor)
+            protected override (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor)
             {
-                if (currentColor == black)
-                {
-                    direction++;
-                    return white;
-                }
-                else
-                {
-                    direction--;
-                    return black;
-                }
+                return (currentColor == black) ? (white, 1) : (black, -1);
             }
         }
 
@@ -61,12 +52,14 @@ namespace TurkMite
 
             public void Step()
             {
-                indexer[y, x] = GetNextColorAndUpdateDirection(indexer[y, x]);
-                PerformMove();
+                int deltaDirection;
+                (indexer[y, x], deltaDirection) = GetNextColorAndUpdateDirection(indexer[y, x]);
+                PerformMove(deltaDirection);
             }
 
-            private void PerformMove()
+            private void PerformMove(int deltaDirection)
             {
+                direction += deltaDirection;
                 direction = (direction + 4) % 4;
                 x += delta[direction].x;
                 y += delta[direction].y;
@@ -74,8 +67,7 @@ namespace TurkMite
                 y = Math.Max(0, Math.Min(Image.Rows, y));
             }
 
-            protected abstract Vec3b GetNextColorAndUpdateDirection(Vec3b currentColor);
+            protected abstract (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor);
         }
-
     }
 }
