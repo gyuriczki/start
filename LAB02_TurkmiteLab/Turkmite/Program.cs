@@ -38,24 +38,32 @@ namespace TurkMite
 
             public void Step()
             {
-                Vec3b currentColor = indexer[y, x];
-                if (currentColor == black)
-                {
-                    indexer[y, x] = white;
-                    direction++;
-                }
-                else
-                {
-                    indexer[y, x] = black;
-                    direction--;
-                }
+                indexer[y, x] = GetNextColorAndUpdateDirection(indexer[y, x]);
+                PerformMove();
+            }
 
+            private void PerformMove()
+            {
                 direction = (direction + 4) % 4;
                 var delta = new (int x, int y)[] { (0, -1), (1, 0), (0, 1), (-1, 0) };
                 x += delta[direction].x;
                 y += delta[direction].y;
                 x = Math.Max(0, Math.Min(Image.Cols, x));
                 y = Math.Max(0, Math.Min(Image.Rows, y));
+            }
+
+            private Vec3b GetNextColorAndUpdateDirection(Vec3b currentColor)
+            {
+                if (currentColor == black)
+                {
+                    direction++;
+                    return white;
+                }
+                else
+                {
+                    direction--;
+                    return black;
+                }
             }
         }
     }
