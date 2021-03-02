@@ -8,7 +8,7 @@ namespace TurkMite
         static void Main()
         {
             Mat img = new Mat(200, 200, MatType.CV_8UC3, new Scalar(0, 0, 0));
-            var turkmite = new OriginalTurkmite(img);
+            var turkmite = new ThreeColorTurkmite(img);
             for (int i = 0; i < 13000; i++)
             {
                 turkmite.Step();
@@ -29,6 +29,27 @@ namespace TurkMite
             protected override (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor)
             {
                 return (currentColor == black) ? (white, 1) : (black, -1);
+            }
+        }
+
+        class ThreeColorTurkmite : TurkmiteBase
+        {
+            readonly private Vec3b black = new Vec3b(0, 0, 0);
+            readonly private Vec3b white = new Vec3b(255, 255, 255);
+            readonly private Vec3b red = new Vec3b(0, 0, 255);
+
+            public ThreeColorTurkmite(Mat image) : base(image)
+            {
+            }
+
+            protected override (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor)
+            {
+                if (currentColor == black)
+                    return (white, 1);
+                else if (currentColor == white)
+                    return (red, -1);
+                else
+                    return (black, -1);
             }
         }
 
