@@ -9,7 +9,7 @@ namespace TurkMite
         {
             Mat img = new Mat(200, 200, MatType.CV_8UC3, new Scalar(0, 0, 0));
             var turkmite = new ThreeColorTurkmite(img);
-            for (int i = 0; i < 13000; i++)
+            for (int i = 0; i < turkmite.PreferredIterationCount; i++)
             {
                 turkmite.Step();
             }
@@ -19,6 +19,7 @@ namespace TurkMite
 
         class OriginalTurkmite : TurkmiteBase
         {
+            public override int PreferredIterationCount => 13000;
             readonly private Vec3b black = new Vec3b(0, 0, 0);
             readonly private Vec3b white = new Vec3b(255, 255, 255);
 
@@ -34,6 +35,7 @@ namespace TurkMite
 
         class ThreeColorTurkmite : TurkmiteBase
         {
+            public override int PreferredIterationCount => 13000;
             readonly private Vec3b black = new Vec3b(0, 0, 0);
             readonly private Vec3b white = new Vec3b(255, 255, 255);
             readonly private Vec3b red = new Vec3b(0, 0, 255);
@@ -56,6 +58,7 @@ namespace TurkMite
         abstract class TurkmiteBase
         {
             public Mat Image { get; }
+            public abstract int PreferredIterationCount { get; }
             private Mat.Indexer<Vec3b> indexer;
             private int x;
             private int y;
