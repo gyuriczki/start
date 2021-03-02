@@ -8,7 +8,7 @@ namespace TurkMite
         static void Main()
         {
             Mat img = new Mat(200, 200, MatType.CV_8UC3, new Scalar(0, 0, 0));
-            var turkmite = new ThreeColorTurkmite(img);
+            var turkmite = new StateTurkmite(img);
             for (int i = 0; i < turkmite.PreferredIterationCount; i++)
             {
                 turkmite.Step();
@@ -92,6 +92,192 @@ namespace TurkMite
             }
 
             protected abstract (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor);
+        }
+
+        class StateTurkmite : TurkmiteBase
+        {
+            public StateTurkmite(Mat image) : base(image)
+            {
+                StateA = new StateA(this);
+                StateB = new StateB(this);
+                StateC = new StateC(this);
+
+                CurrentState = StateA;
+            }
+
+            readonly private Vec3b black = new Vec3b(0, 0, 0);
+            readonly private Vec3b white = new Vec3b(255, 255, 255);
+            readonly private Vec3b red = new Vec3b(0, 0, 255);
+
+            private StateBase currentState;
+            public StateBase CurrentState
+            {
+                get
+                {
+                    return currentState;
+                }
+                set
+                {
+                    currentState = value;
+                    currentState.Enter();
+                }
+            }
+
+            public readonly StateA StateA;
+            public readonly StateB StateB;
+            public readonly StateC StateC;
+
+            public override int PreferredIterationCount => 20000;
+
+            protected override (Vec3b newColor, int deltaDirection) GetNextColorAndUpdateDirection(Vec3b currentColor)
+            {
+                if (currentColor == black)
+                    return currentState.Black();
+                else if (currentColor == white)
+                    return currentState.White();
+                else
+                    return currentState.Red();
+            }
+        }
+
+        abstract class StateBase
+        {
+            public StateBase(StateTurkmite turkmite) 
+            {
+                Turkmite = turkmite;
+            }
+
+            readonly protected Vec3b black = new Vec3b(0, 0, 0);
+            readonly protected Vec3b white = new Vec3b(255, 255, 255);
+            readonly protected Vec3b red = new Vec3b(0, 0, 255);
+
+            public StateTurkmite Turkmite { get; }
+
+            public abstract void Enter();
+
+            public abstract (Vec3b newColor, int deltaDirection) Black();
+            public abstract (Vec3b newColor, int deltaDirection) White();
+            public abstract (Vec3b newColor, int deltaDirection) Red();
+        }
+
+
+        class StateA : StateBase
+        {
+            public StateA(StateTurkmite turkmite) : base(turkmite) { }
+            public override void Enter()
+            {
+                blackCounter = 0;
+            }
+            public override (Vec3b newColor, int deltaDirection) Black()
+            {
+                blackCounter++;
+                if (blackCounter == 3)
+                {
+                    Turkmite.CurrentState = Turkmite.StateB;
+                    return (white, 2);
+                }
+                else
+                {
+                    return (black, 0);
+                }
+            }
+
+            public override (Vec3b newColor, int deltaDirection) Red()
+            {
+                return (red, 0);
+            }
+
+            public override (Vec3b newColor, int deltaDirection) White()
+            {
+                return (white, 0);
+            }
+
+            int blackCounter = 0;
+        }
+
+        class StateB : StateBase
+        {
+            public StateB(StateTurkmite turkmite) : base(turkmite) { }
+
+            public override void Enter()
+            {
+                return;
+            }
+
+            public override (Vec3b newColor, int deltaDirection) Black()
+            {
+                return (white, 1);
+            }
+
+            public override (Vec3b newColor, int deltaDirection) White()
+            {
+                return (red, -1);
+            }
+
+            public override (Vec3b newColor, int deltaDirection) Red()
+            {
+                Turkmite.CurrentState = Turkmite.StateC;
+                return (black, 0);
+            }
+
+
+        }
+
+        class StateC : StateBase
+        {
+            public StateC(StateTurkmite turkmite) : base(turkmite) { }
+
+            public override void Enter()
+            {
+                counter = 0;
+            }
+
+            public override (Vec3b newColor, int deltaDirection) Black()
+            {
+                counter++;
+                if (counter == 1)
+                {
+                    return (red, 0);
+                }
+                else if (counter == 5)
+                {
+                    Turkmite.CurrentState = Turkmite.StateA;
+                }
+
+                return (white, 1);
+            }
+
+            public override (Vec3b newColor, int deltaDirection) White()
+            {
+                counter++;
+                if (counter == 1)
+                {
+                    return (red, 0);
+                }
+                else if (counter == 5)
+                {
+                    Turkmite.CurrentState = Turkmite.StateA;
+                }
+
+                return (red, -1);
+            }
+
+            public override (Vec3b newColor, int deltaDirection) Red()
+            {
+                counter++;
+                if (counter == 1)
+                {
+                    return (red, 0);
+                }
+                else if (counter == 5)
+                {
+                    Turkmite.CurrentState = Turkmite.StateB;
+                }
+
+                return (black, -1);
+            }
+
+            int counter = 0;
         }
     }
 }
