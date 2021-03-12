@@ -1,5 +1,6 @@
 ﻿using System;
 using AttaxxPlus.Model;
+using AttaxxPlus.ViewModel;
 
 namespace AttaxxPlus.Boosters
 {
@@ -10,19 +11,21 @@ namespace AttaxxPlus.Boosters
     public class DummyBooster : BoosterBase
     {
         // How many times can the user activate this booster
-        private int[] usableCounter = new int[3];
+        private int[] usableCounter;
 
         // EVIP: overriding abstract property in base class.
         public override string Title { get => $"Dummy ({usableCounter[this.GameViewModel.CurrentPlayer]})"; }
 
-        public DummyBooster()
-            : base()
+        public DummyBooster(GameViewModel gameViewModel)
+            : base(gameViewModel)
         {
             // EVIP: referencing content resource with Uri.
             //  The image is added to the project as "Content" build action.
             //  See also for embedded resources: https://docs.microsoft.com/en-us/windows/uwp/app-resources/
             // https://docs.microsoft.com/en-us/windows/uwp/app-resources/images-tailored-for-scale-theme-contrast#reference-an-image-or-other-asset-from-xaml-markup-and-code
             LoadImage(new Uri(@"ms-appx:///Boosters/DummyBooster.png"));
+            usableCounter = new int[this.GameViewModel.Model.NumberOfPlayers + 1];
+            InitializeGame();
         }
 
         protected override void CurrentPlayerChanged()
@@ -33,10 +36,10 @@ namespace AttaxxPlus.Boosters
 
         public override void InitializeGame()
         {
-            usableCounter[0] = 0;
-            usableCounter[1] = 2;
-            usableCounter[2] = 2;
-            Notify(nameof(Title));
+            for(int i= 0; i <= this.GameViewModel.Model.NumberOfPlayers; i++)
+            {
+                usableCounter[i] = 2;
+            }
         }
 
         public override bool TryExecute(Field selectedField, Field currentField)

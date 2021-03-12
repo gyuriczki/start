@@ -61,9 +61,23 @@ namespace AttaxxPlus.Model
             if (!CheckGameOver())
             {
                 if (CurrentPlayer < NumberOfPlayers)
+                {
                     CurrentPlayer++;
+                    int[] counts = new int[NumberOfPlayers + 1];
+                    foreach (var f in Fields)
+                        counts[f.Owner]++;
+                    if (counts[CurrentPlayer] == 0)
+                        EndOfTurn();
+                }
                 else
+                {
                     CurrentPlayer = 1;
+                    int[] counts = new int[NumberOfPlayers + 1];
+                    foreach (var f in Fields)
+                        counts[f.Owner]++;
+                    if (counts[CurrentPlayer] == 0)
+                        EndOfTurn();
+                }
             }
         }
 

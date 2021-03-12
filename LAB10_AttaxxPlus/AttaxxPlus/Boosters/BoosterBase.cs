@@ -33,9 +33,9 @@ namespace AttaxxPlus.Boosters
 
         public bool CanExecute(object parameter) => true;
 
-        public BoosterBase()
+        public BoosterBase(GameViewModel gameViewModel)
         {
-            InitializeGame();
+            this.GameViewModel = gameViewModel;
         }
 
         public void Execute(object parameter)
